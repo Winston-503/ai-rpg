@@ -1,4 +1,4 @@
-import gradio as gr
+import gradio as gr  # type: ignore
 
 
 def start_game(main_loop, share=False):
@@ -19,7 +19,7 @@ def start_game(main_loop, share=False):
 
 
 def test_main_loop(message, history):
-    return 'Entered Action: ' + message
+    return "Entered Action: " + message
 
 
 start_game(test_main_loop)

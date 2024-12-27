@@ -10,6 +10,7 @@ def start_game_ui(main_loop: Callable, greeting_message: Optional[str] = None, s
         textbox=gr.Textbox(placeholder="What do you do next?", container=False, scale=8),
         title="AI RPG",
         theme="soft",
+        examples=["/Explore inventory", "Look around"],
         cache_examples=False,
         retry_btn="Retry",
         undo_btn="Undo",

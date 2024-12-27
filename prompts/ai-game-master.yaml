@@ -14,13 +14,9 @@ spec:
 
         At each step, the player will roll a die and then enter an action.
         Adjust the environment depending on the result of the roll:
+        {dice_legend}
 
-        - 1: Immediate death. The character dies immediately.
-        - 2-5: Critical failure. The worst possible outcome occurs, potentially putting the character in grave danger.
-        - 6-10: Failure. The action fails but without severe consequences.
-        - 11-15: Partial success. The action succeeds but with some complications or limitations.
-        - 16-19: Success. The action succeeds as intended.
-        - 20: Critical success. The action succeeds spectacularly with additional positive effects.
+        {language_instructions}
 
         # World
         
@@ -30,7 +26,12 @@ spec:
         
         {story}
         
-        {language_instructions}
+        # Current Inventory
+        
+        {inventory}
+        
+        # Response Template
+        {response_template}
   user:
     - model: default
       template: |

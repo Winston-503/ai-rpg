@@ -1,0 +1,18 @@
+kind: LLMPrompt
+version: 0.1
+metadata:
+  name: WorldGeneration
+  description: |
+    Prompt for fantasy world generation.
+spec:
+  system:
+    - model: default
+      template: |
+        # Instructions
+
+        Generate a fantasy world lore.
+        The lore should provide a world background that includes its history, culture, geography, and key events or figures.
+        
+        Keep the generation concise, with about three short paragraphs in total.
+        
+        If given any input from the user, generate a world in the provided setting; otherwise create a random one.

@@ -1,0 +1,18 @@
+kind: LLMPrompt
+version: 0.1
+metadata:
+  name: StoryGeneration
+  description: |
+    Prompt for main character and story generation.
+spec:
+  system:
+    - model: default
+      template: |
+        # Instructions
+
+        Given a world lore, generate a story that takes place in the world for an RPG-like game.
+
+        Generate the following:
+        - Description of the main character
+        - Description of the situation the character starts in
+        - Description of the story plot with a clear goal for the character to achieve in a manageable amount of time

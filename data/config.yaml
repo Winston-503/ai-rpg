@@ -1,18 +1,18 @@
 generation:
   # World setting for the game. One of:
-  # - None: generate a random world or string input to use as starting seed for the world generation
+  # - null: generate a random world or string input to use as starting seed for the world generation
   # - filename.md: use an existing world file
-  world: None
+  world: null
 
   # Story setting for the game. One of:
-  # - None: generate a story based on the world generated in the previous step
+  # - null: generate a story based on the world generated in the previous step
   # - filename.md: use a specific story file
-  story: None
+  story: null
 
   # Starting inventory for the character. One of:
-  # - None: generate an inventory based on the story generated in the previous step
-  # - filename.md: use a specific inventory file
-  starting_inventory: None
+  # - null: generate an inventory based on the story generated in the previous step
+  # - filename.yaml: use a specific inventory file
+  starting_inventory: null
 
 difficulty:
   number_of_dice: 1  # How many dice to roll each time
@@ -24,3 +24,6 @@ difficulty:
     - 11-15: Partial success. The action succeeds but with some complications or limitations.
     - 16-19: Success. The action succeeds as intended.
     - 20: Critical success. The action succeeds spectacularly with additional positive effects.
+
+# Language for the LLM to respond in, null for English
+language: null

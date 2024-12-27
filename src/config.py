@@ -4,7 +4,7 @@ from typing import Optional
 
 import yaml
 
-from src.utils import BASE_PATH
+from src.utils import DATA_PATH
 
 
 @dataclass
@@ -37,6 +37,7 @@ class DifficultyConfig:
 class AIRPGConfig:
     generation: GenerationConfig
     difficulty: DifficultyConfig
+    language: Optional[str]
 
     @classmethod
     def from_yaml(cls, path: str) -> "AIRPGConfig":
@@ -46,9 +47,9 @@ class AIRPGConfig:
         generation = GenerationConfig.from_yaml(data["generation"])
         difficulty = DifficultyConfig.from_yaml(data["difficulty"])
 
-        return cls(generation=generation, difficulty=difficulty)
+        return cls(generation=generation, difficulty=difficulty, language=data["language"])
 
     @classmethod
     def load(cls) -> "AIRPGConfig":
         """Load config from default location"""
-        return cls.from_yaml(os.path.join(BASE_PATH, "data", "config.yaml"))
+        return cls.from_yaml(os.path.join(DATA_PATH, "config.yaml"))

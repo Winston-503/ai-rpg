@@ -30,7 +30,7 @@ spec:
         
         {story}
         
-        At the start of the game, tell the player shortly about the character, story and the world.
+        {language_instructions}
   user:
     - model: default
       template: |

@@ -42,11 +42,13 @@ class AIRPG:
         return generate_inventory(self.story)
 
     def _load_llm_function(self) -> LLMFunction:
+        language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
         return get_llm_function(
             self.PROMPT_FILENAME,
             world_description=self.world_description,
             story=self.story,
             inventory=yaml.dump(self.inventory),
+            language_instructions=language_instructions,
         )
 
     def _load_user_prompt_template(self) -> str:
@@ -58,7 +60,8 @@ class AIRPG:
         """Unwrap gradio's ChatInterface history and input message to List[LLMMessage]"""
         messages = []
         for action in history:
-            messages.append(LLMMessage.user_message(action[0]))
+            if action[0] is not None:  # to handle first assistant message without the user input
+                messages.append(LLMMessage.user_message(action[0]))
             messages.append(LLMMessage.assistant_message(action[1]))
 
         return messages
@@ -82,6 +85,8 @@ class AIRPG:
     def run(self):
         # TODO: separate LLMFunction
         start_message = "The story begins..."
+
+        print("Running the UI...")
         start_game_ui(self.game_loop, greeting_message=start_message)
 
 

@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
-from typing import Final, List, Optional
+from typing import Any, Final, List, Optional
 
+import yaml
 from council import OpenAILLM
 from council.llm import (
     LLMBase,
@@ -68,17 +69,36 @@ def format_duration_and_cost(llm_response: LLMFunctionResponse) -> str:
     return message
 
 
-def save_generation(*, content: str, prefix: str) -> None:
-    filename = f"{prefix}{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.md"
-    path = os.path.join(DATA_PATH, filename)
+def save_str(*, content: str, path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
-    print(f"Saved into {filename}")
 
 
-def read_from_data(filename: str) -> str:
+def save_yaml(*, content: Any, path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.dump(content, f)
+
+
+def save_generation(*, content: Any, prefix: str) -> None:
+    """Save a generation to a file, either as a markdown or a yaml."""
+
+    filename_without_extension = f"{prefix}{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    if isinstance(content, str):
+        filename = f"{filename_without_extension}.md"
+        save_str(content=content, path=os.path.join(DATA_PATH, filename))
+    else:
+        filename = f"{filename_without_extension}.yaml"
+        save_yaml(content=content, path=os.path.join(DATA_PATH, filename))
+
+    print(f"\nSaved into {filename}")
+
+
+def read_generation(filename: str) -> Any:
+    """Read generated content."""
     path = os.path.join(DATA_PATH, filename)
     with open(path, "r", encoding="utf-8") as f:
+        if filename.endswith(".yaml"):
+            return yaml.safe_load(f)
         return f.read()
 
 

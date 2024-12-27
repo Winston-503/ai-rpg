@@ -1,0 +1,16 @@
+kind: LLMPrompt
+version: 0.1
+metadata:
+  name: InventoryGeneration
+  description: |
+    Prompt for initial inventory generation based on a story.
+spec:
+  system:
+    - model: default
+      template: |
+        # Instructions
+
+        Given a story, generate an initial inventory for the main character.
+
+        # Response Template
+        {response_template}

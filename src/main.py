@@ -2,14 +2,14 @@ from typing import List
 
 import dotenv
 
-from src.utils import get_llm_function, history_to_messages, read_from_data
+from src.utils import get_llm_function, history_to_messages, read_generation
 
 dotenv.load_dotenv()
 
 
 # TODO: hardcoded
-world_description = read_from_data("world_example.md")
-story = read_from_data("story_example.md")
+world_description = read_generation("world_example.md")
+story = read_generation("story_example.md")
 
 
 def main_loop(message: str, history: List[List[str]]) -> str:

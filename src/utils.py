@@ -1,17 +1,17 @@
 import os
 from datetime import datetime
-from typing import Final, Optional, List
+from typing import Final, List, Optional
 
 from council import OpenAILLM
 from council.llm import (
     LLMBase,
     LLMFileLoggingMiddleware,
+    LLMFunction,
     LLMFunctionResponse,
     LLMLoggingStrategy,
+    LLMMessage,
     LLMMiddlewareChain,
     StringResponseParser,
-    LLMMessage,
-    LLMFunction,
 )
 from council.llm.llm_function.llm_response_parser import LLMResponseParser
 from council.prompt import LLMPromptConfigObject
@@ -48,7 +48,7 @@ def get_llm_function(
     prompt_filename: str, response_parser: Optional[LLMResponseParser] = None, **kwargs
 ) -> LLMFunction:
     prompt = LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, prompt_filename))
-    system_prompt_template = prompt.get_system_prompt_template("default")
+    system_prompt_template = prompt.get_system_prompt_template("default")  # pylint: disable=no-member
     parser = response_parser or StringResponseParser.from_response
     return LLMFunction(
         llm=get_llm_with_logging(),

@@ -2,7 +2,7 @@ from typing import List
 
 import dotenv
 
-from src.utils import history_to_messages, get_llm_function, read_from_data
+from src.utils import get_llm_function, history_to_messages, read_from_data
 
 dotenv.load_dotenv()
 

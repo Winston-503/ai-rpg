@@ -2,7 +2,8 @@ from typing import Dict, List
 
 import dotenv
 import yaml
-from council.llm import LLMFunction, LLMMessage
+from council.llm import LLMFunction, LLMFunctionResponse, LLMMessage, YAMLBlockResponseParser
+from pydantic import Field
 
 from src.config import AIRPGConfig
 from src.scripts.story_to_inventory import generate_inventory
@@ -11,6 +12,32 @@ from src.scripts.world_to_story import generate_story
 from src.ui import start_game_ui
 from src.utils import get_llm_function, get_prompt, read_generation, roll_dice
 
+# TODO: class Inventory; change(), format(), format_change()
+
+
+class InventoryChange(YAMLBlockResponseParser):
+    name: str = Field(..., description="Name of the item to change.")
+    amount: int = Field(..., description="Change amount, e.g. +1, -5 etc.")
+
+
+class AIRPGResponse(YAMLBlockResponseParser):
+    _reasoning_description = "\n".join(
+        [
+            "Your reasoning about the current situation, player action and dice roll.",
+            "It's private and will be not shown to the user.",
+        ]
+    )
+    _message_description = "\n".join(
+        [
+            "Message,",
+            "that will be shown to the user.",
+        ]
+    )
+
+    reasoning: str = Field(..., description=_reasoning_description)
+    inventory_changes: List[InventoryChange] = Field(..., description="List of inventory changes.")
+    message: str = Field(..., description=_message_description)
+
 
 class AIRPG:
     PROMPT_FILENAME = "ai-game-master.yaml"
@@ -18,6 +45,7 @@ class AIRPG:
     def __init__(self, game_config: AIRPGConfig):
         self.config = game_config
         self.user_prompt_template = self._load_user_prompt_template()
+        self.total_cost = 0.0
 
         self.world_description = self._load_world()
         self.story = self._load_story()
@@ -45,10 +73,13 @@ class AIRPG:
         language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
         return get_llm_function(
             self.PROMPT_FILENAME,
+            AIRPGResponse.from_response,
+            dice_legend=self.config.difficulty.dice_legend,
             world_description=self.world_description,
             story=self.story,
             inventory=yaml.dump(self.inventory),
             language_instructions=language_instructions,
+            response_template=AIRPGResponse.to_response_template(),
         )
 
     def _load_user_prompt_template(self) -> str:
@@ -66,9 +97,38 @@ class AIRPG:
 
         return messages
 
+    def track_cost(self, llm_response: LLMFunctionResponse) -> None:
+        for consumption in llm_response.consumptions:
+            if consumption.kind.endswith("total_tokens_cost"):
+                self.total_cost += consumption.value
+                return
+
+    def update_inventory(self, inventory_changes: List[InventoryChange]) -> None:
+        for inventory_change in inventory_changes:
+            if inventory_change.name not in self.inventory:
+                self.inventory[inventory_change.name] = 0
+            self.inventory[inventory_change.name] += inventory_change.amount
+
+    @staticmethod
+    def format_response(roll: int, llm_response: str, inventory_changes: List[InventoryChange]) -> str:
+        response_parts = [f"You roll {roll}.", llm_response, ""]
+
+        if inventory_changes:
+            response_parts.extend(
+                [
+                    "Your inventory has changed:",
+                    *[f"- {change.name}: {change.amount:+d}" for change in inventory_changes],
+                ]
+            )
+
+        return "\n".join(response_parts)
+
     def game_loop(self, message: str, history: List[List[str]]) -> str:
         """Main game loop that processes player actions, compatible with gradio's chatbot."""
-        llm_func = self._load_llm_function()
+        if message == "/Explore inventory":
+            return "\n".join(["Your inventory:", *[f"- {item}: {amount}" for item, amount in self.inventory.items()]])
+
+        llm_func: LLMFunction[AIRPGResponse] = self._load_llm_function()
 
         messages = self._history_to_messages(history)
 
@@ -78,9 +138,13 @@ class AIRPG:
 
         user_message = LLMMessage.user_message(self.user_prompt_template.format(roll=roll, action=message))
         messages.append(user_message)
-        result = llm_func.execute(messages=messages)
+        llm_response = llm_func.execute_with_llm_response(messages=messages)
+        response = llm_response.response
 
-        return f"You roll {roll}.\n{result}"
+        self.update_inventory(response.inventory_changes)
+        self.track_cost(llm_response)
+
+        return self.format_response(roll, response.message, response.inventory_changes)
 
     def run(self):
         # TODO: separate LLMFunction

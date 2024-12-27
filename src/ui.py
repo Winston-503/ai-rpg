@@ -21,7 +21,8 @@ def start_game_ui(main_loop: Callable, share=False):
 
 
 def test_main_loop(message: str, history: List[List[str]]) -> str:
-    return "Entered Action: " + message
+    history_str = "\n".join([f"User: {h[0]}\nAssistant: {h[1]}" for h in history])
+    return f"History:\n{history_str}\n---\nEntered Action: {message}"
 
 
 if __name__ == "__main__":

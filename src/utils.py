@@ -26,6 +26,7 @@ PROMPTS_PATH: Final[str] = os.path.join(BASE_PATH, "prompts")
 def get_llm() -> LLMBase:
     # gpt-4o-2024-08-06
     # gpt-4o-mini-2024-07-18
+    # TODO: move to config
     with OsEnviron("OPENAI_LLM_MODEL", "gpt-4o-mini-2024-07-18"), OsEnviron("OPENAI_LLM_TEMPERATURE", "0.5"):
         return OpenAILLM.from_env()
 

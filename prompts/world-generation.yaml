@@ -16,7 +16,3 @@ spec:
         Keep the generation concise, with about three short paragraphs in total.
         
         If given any input from the user, generate a world in the provided setting; otherwise create a random one.
-  user:
-    - model: default
-      template: |
-        {setting}

@@ -7,6 +7,7 @@ from src.utils import get_llm_function, history_to_messages, read_from_data
 dotenv.load_dotenv()
 
 
+# TODO: hardcoded
 world_description = read_from_data("world_example.md")
 story = read_from_data("story_example.md")
 

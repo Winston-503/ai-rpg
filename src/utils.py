@@ -47,10 +47,14 @@ def get_llm_with_logging() -> LLMMiddlewareChain:
     return llm_middleware
 
 
+def get_prompt(filename: str) -> LLMPromptConfigObject:
+    return LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, filename))
+
+
 def get_llm_function(
     prompt_filename: str, response_parser: Optional[LLMResponseParser] = None, **kwargs
 ) -> LLMFunction:
-    prompt = LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, prompt_filename))
+    prompt = get_prompt(prompt_filename)
     system_prompt_template = prompt.get_system_prompt_template("default")  # pylint: disable=no-member
     parser = response_parser or StringResponseParser.from_response
     return LLMFunction(

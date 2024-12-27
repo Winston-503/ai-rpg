@@ -1,14 +1,12 @@
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import gradio as gr  # type: ignore
 
-from src.main import main_loop
 
-
-def start_game_ui(main_loop: Callable, share=False):
+def start_game_ui(main_loop: Callable, greeting_message: Optional[str] = None, share=False):
     demo = gr.ChatInterface(
         main_loop,
-        chatbot=gr.Chatbot(placeholder="The story begins... "),
+        chatbot=gr.Chatbot(value=[[None, greeting_message]], placeholder="The story begins... "),
         textbox=gr.Textbox(placeholder="What do you do next?", container=False, scale=8),
         title="AI RPG",
         theme="soft",
@@ -26,4 +24,4 @@ def test_main_loop(message: str, history: List[List[str]]) -> str:
 
 
 if __name__ == "__main__":
-    start_game_ui(main_loop)
+    start_game_ui(test_main_loop)

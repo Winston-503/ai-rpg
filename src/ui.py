@@ -1,25 +1,28 @@
+from typing import Callable, List
+
 import gradio as gr  # type: ignore
 
+from src.main import main_loop
 
-def start_game(main_loop, share=False):
+
+def start_game_ui(main_loop: Callable, share=False):
     demo = gr.ChatInterface(
         main_loop,
-        chatbot=gr.Chatbot(height=250, placeholder="Type 'start game' to begin"),
-        textbox=gr.Textbox(placeholder="What do you do next?", container=False, scale=7),
+        chatbot=gr.Chatbot(placeholder="The story begins... "),
+        textbox=gr.Textbox(placeholder="What do you do next?", container=False, scale=8),
         title="AI RPG",
-        # description="Ask Yes Man any question",
         theme="soft",
-        examples=["Look around", "Continue the story"],
         cache_examples=False,
         retry_btn="Retry",
         undo_btn="Undo",
         clear_btn="Clear",
     )
-    demo.launch(share=share, server_name="0.0.0.0")
+    demo.launch(share=share, server_name="localhost")
 
 
-def test_main_loop(message, history):
+def test_main_loop(message: str, history: List[List[str]]) -> str:
     return "Entered Action: " + message
 
 
-start_game(test_main_loop)
+if __name__ == "__main__":
+    start_game_ui(main_loop)

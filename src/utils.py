@@ -1,16 +1,17 @@
 import os
 from datetime import datetime
-from typing import Final, Optional
+from typing import Final, Optional, List
 
 from council import OpenAILLM
 from council.llm import (
     LLMBase,
     LLMFileLoggingMiddleware,
     LLMFunctionResponse,
-    LLMFunctionWithPrompt,
     LLMLoggingStrategy,
     LLMMiddlewareChain,
     StringResponseParser,
+    LLMMessage,
+    LLMFunction,
 )
 from council.llm.llm_function.llm_response_parser import LLMResponseParser
 from council.prompt import LLMPromptConfigObject
@@ -43,12 +44,16 @@ def get_llm_with_logging() -> LLMMiddlewareChain:
     return llm_middleware
 
 
-def get_llm_function(prompt_path: str, response_parser: Optional[LLMResponseParser] = None) -> LLMFunctionWithPrompt:
+def get_llm_function(
+    prompt_filename: str, response_parser: Optional[LLMResponseParser] = None, **kwargs
+) -> LLMFunction:
+    prompt = LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, prompt_filename))
+    system_prompt_template = prompt.get_system_prompt_template("default")
     parser = response_parser or StringResponseParser.from_response
-    return LLMFunctionWithPrompt(
+    return LLMFunction(
         llm=get_llm_with_logging(),
         response_parser=parser,
-        prompt_config=LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, prompt_path)),
+        system_message=system_prompt_template.format(**kwargs),
     )
 
 
@@ -65,12 +70,24 @@ def format_duration_and_cost(llm_response: LLMFunctionResponse) -> str:
 def save_generation(*, content: str, prefix: str) -> None:
     filename = f"{prefix}{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.md"
     path = os.path.join(DATA_PATH, filename)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"Saved into {filename}")
 
 
 def read_from_data(filename: str) -> str:
     path = os.path.join(DATA_PATH, filename)
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+def history_to_messages(message: str, history: List[List[str]]) -> List[LLMMessage]:
+    """Unwrap gradio's ChatInterface history and input message to List[LLMMessage]"""
+    messages = []
+    for action in history:
+        messages.append(LLMMessage.user_message(action[0]))
+        messages.append(LLMMessage.assistant_message(action[1]))
+
+    messages.append(LLMMessage.user_message(message))
+
+    return messages

@@ -9,7 +9,7 @@ if __name__ == "__main__":
     world_filename = "world_example.md"
     print(f"Generating main character and story for {world_filename}...")
 
-    llm_response = llm_func.execute_with_llm_response(user_prompt_params={"world_lore": read_from_data(world_filename)})
+    llm_response = llm_func.execute_with_llm_response(user_message=read_from_data(world_filename))
     story = llm_response.response
 
     print(f"Generated story {format_duration_and_cost(llm_response)}")

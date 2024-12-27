@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime
 from typing import Any, Final, List, Optional
 
@@ -46,10 +47,14 @@ def get_llm_with_logging() -> LLMMiddlewareChain:
     return llm_middleware
 
 
+def get_prompt(filename: str) -> LLMPromptConfigObject:
+    return LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, filename))
+
+
 def get_llm_function(
     prompt_filename: str, response_parser: Optional[LLMResponseParser] = None, **kwargs
 ) -> LLMFunction:
-    prompt = LLMPromptConfigObject.from_yaml(os.path.join(PROMPTS_PATH, prompt_filename))
+    prompt = get_prompt(prompt_filename)
     system_prompt_template = prompt.get_system_prompt_template("default")  # pylint: disable=no-member
     parser = response_parser or StringResponseParser.from_response
     return LLMFunction(
@@ -102,13 +107,29 @@ def read_generation(filename: str) -> Any:
         return f.read()
 
 
-def history_to_messages(message: str, history: List[List[str]]) -> List[LLMMessage]:
+def history_to_messages(history: List[List[str]]) -> List[LLMMessage]:
     """Unwrap gradio's ChatInterface history and input message to List[LLMMessage]"""
     messages = []
     for action in history:
         messages.append(LLMMessage.user_message(action[0]))
         messages.append(LLMMessage.assistant_message(action[1]))
 
-    messages.append(LLMMessage.user_message(message))
-
     return messages
+
+
+def roll_die(sides: int = 20) -> int:
+    """Simulates rolling a die, e.g., a d20, in D&D."""
+    return random.randint(1, sides)
+
+
+def roll_dice(dice: int = 1, aggregation: str = "avg", sides: int = 20) -> int:
+    """Simulates rolling multiple dice, e.g., 2d20, in D&D."""
+    rolls = [roll_die(sides) for _ in range(dice)]
+    if aggregation == "avg":
+        return round(sum(rolls) / dice)
+    elif aggregation == "min":
+        return min(rolls)
+    elif aggregation == "max":
+        return max(rolls)
+    else:
+        raise ValueError(f"Invalid aggregation method: {aggregation}")

@@ -1,0 +1,29 @@
+generation:
+  # World setting for the game. One of:
+  # - null: generate a random world or string input to use as starting seed for the world generation
+  # - filename.md: use an existing world file
+  world: null
+
+  # Story setting for the game. One of:
+  # - null: generate a story based on the world generated in the previous step
+  # - filename.md: use a specific story file
+  story: null
+
+  # Starting inventory for the character. One of:
+  # - null: generate an inventory based on the story generated in the previous step
+  # - filename.yaml: use a specific inventory file
+  starting_inventory: null
+
+difficulty:
+  number_of_dice: 1  # How many dice to roll each time
+  dice_combine_method: "avg"  # How to combine multiple dice rolls: "avg" (average), "min" (minimum) or "max" (maximum)
+  dice_legend: |
+    - 1: Immediate death. The character dies immediately.
+    - 2-5: Critical failure. The worst possible outcome occurs, potentially putting the character in grave danger.
+    - 6-10: Failure. The action fails but without severe consequences.
+    - 11-15: Partial success. The action succeeds but with some complications or limitations.
+    - 16-19: Success. The action succeeds as intended.
+    - 20: Critical success. The action succeeds spectacularly with additional positive effects.
+
+# Language for the LLM to respond in, null for English
+language: null

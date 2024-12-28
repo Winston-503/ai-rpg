@@ -1,13 +1,12 @@
 from typing import Dict
 
-import dotenv
 from council.llm import JSONResponseParser, LLMParsingException
 from pydantic import Field
 
-from src.utils import format_duration_and_cost, get_llm_function, read_generation, save_generation
+from ..utils import format_duration_and_cost, get_llm_function, save_generation
 
 
-class InventoryResponse(JSONResponseParser):
+class InventoryGenerationResponse(JSONResponseParser):
     inventory: Dict[str, int] = Field(
         description="\n".join(
             [
@@ -26,8 +25,8 @@ def generate_inventory(story: str) -> Dict[str, int]:
     """Generate an initial inventory based on a story."""
     llm_func = get_llm_function(
         "inventory-generation.yaml",
-        InventoryResponse.from_response,
-        response_template=InventoryResponse.to_response_template(),
+        InventoryGenerationResponse.from_response,
+        response_template=InventoryGenerationResponse.to_response_template(),
     )
     print("Generating initial inventory...")
 
@@ -39,9 +38,3 @@ def generate_inventory(story: str) -> Dict[str, int]:
     save_generation(content=inventory, prefix="inventory_")
 
     return inventory
-
-
-if __name__ == "__main__":
-    dotenv.load_dotenv()
-    story_filename = "story_example.md"
-    generate_inventory(read_generation(story_filename))

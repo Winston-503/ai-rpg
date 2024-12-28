@@ -2,17 +2,17 @@ generation:
   # World setting for the game. One of:
   # - null: generate a random world or string input to use as starting seed for the world generation
   # - filename.md: use an existing world file
-  world: null
+  world: world_example.md
 
   # Story setting for the game. One of:
   # - null: generate a story based on the world generated in the previous step
   # - filename.md: use a specific story file
-  story: null
+  story: story_example.md
 
   # Starting inventory for the character. One of:
   # - null: generate an inventory based on the story generated in the previous step
   # - filename.yaml: use a specific inventory file
-  starting_inventory: null
+  starting_inventory: inventory_example.yaml
 
 difficulty:
   number_of_dice: 1  # How many dice to roll each time

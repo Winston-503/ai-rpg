@@ -1,10 +1,9 @@
-import os
 from dataclasses import dataclass
 from typing import Optional
 
 import yaml
 
-from src.utils import DATA_PATH
+from .utils import AI_RPG_CONFIG_PATH
 
 
 @dataclass
@@ -52,4 +51,4 @@ class AIRPGConfig:
     @classmethod
     def load(cls) -> "AIRPGConfig":
         """Load config from default location"""
-        return cls.from_yaml(os.path.join(DATA_PATH, "config.yaml"))
+        return cls.from_yaml(AI_RPG_CONFIG_PATH)

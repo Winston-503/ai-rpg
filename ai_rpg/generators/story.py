@@ -1,6 +1,4 @@
-import dotenv
-
-from src.utils import format_duration_and_cost, get_llm_function, read_generation, save_generation
+from ..utils import format_duration_and_cost, get_llm_function, save_generation
 
 
 def generate_story(world_description: str) -> str:
@@ -15,9 +13,3 @@ def generate_story(world_description: str) -> str:
     save_generation(content=story, prefix="story_")
 
     return story
-
-
-if __name__ == "__main__":
-    dotenv.load_dotenv()
-    world_filename = "world_example.md"
-    generate_story(read_generation(world_filename))

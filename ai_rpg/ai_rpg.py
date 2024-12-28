@@ -1,15 +1,13 @@
 from typing import Dict, List
 
-import dotenv
 from council.llm import LLMFunction, LLMFunctionResponse, LLMMessage, YAMLBlockResponseParser
 from pydantic import Field
 
-from src.config import AIRPGConfig
-from src.scripts.story_to_inventory import generate_inventory
-from src.scripts.world_generation import generate_world_description
-from src.scripts.world_to_story import generate_story
-from src.ui import start_game_ui
-from src.utils import get_llm_function, get_prompt, read_generation, roll_dice
+from .config import AIRPGConfig
+from .dice import DiceRoller
+from .generators import generate_inventory, generate_story, generate_world
+from .ui import start_game_ui
+from .utils import get_llm_function, get_prompt, read_generation
 
 
 class InventoryChange(YAMLBlockResponseParser):
@@ -77,6 +75,9 @@ class AIRPG:
         self.user_prompt_template = self._load_user_prompt_template()
         self.total_cost = 0.0
         self.language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
+        self.dice_roller = DiceRoller(
+            dice=self.config.difficulty.number_of_dice, aggregation=self.config.difficulty.dice_combine_method
+        )
 
         self.world_description = self._load_world()
         self.world_description = self._load_world()
@@ -87,7 +88,7 @@ class AIRPG:
         if self.config.generation.world is not None and self.config.generation.world.endswith(".md"):
             return read_generation(self.config.generation.world)
 
-        return generate_world_description(self.config.generation.world or "")
+        return generate_world(self.config.generation.world or "")
 
     def _load_story(self) -> str:
         if self.config.generation.story is not None:
@@ -101,7 +102,7 @@ class AIRPG:
 
         return generate_inventory(self.story)
 
-    def _load_llm_function(self) -> LLMFunction[AIRPGResponse]:
+    def _load_main_llm_function(self) -> LLMFunction[AIRPGResponse]:
         return get_llm_function(
             self.MAIN_PROMPT_FILENAME,
             AIRPGResponse.from_response,
@@ -131,9 +132,11 @@ class AIRPG:
         """Unwrap gradio's ChatInterface history and input message to List[LLMMessage]"""
         messages = []
         for action in history:
-            if action[0] is not None:  # to handle first assistant message without the user input
+            # None checks to handle first assistant message without the user input
+            if action[0] is not None:
                 messages.append(LLMMessage.user_message(action[0]))
-            messages.append(LLMMessage.assistant_message(action[1]))
+            if action[1] is not None:
+                messages.append(LLMMessage.assistant_message(action[1]))
 
         return messages
 
@@ -149,8 +152,7 @@ class AIRPG:
         response_parts = [f"You roll {roll}.", llm_response, ""]
 
         if inventory_changes:
-            inventory = Inventory({})  # Temporary inventory just for formatting
-            response_parts.append(inventory.format_changes(inventory_changes))
+            response_parts.append(Inventory.format_changes(inventory_changes))
 
         return "\n".join(response_parts)
 
@@ -159,13 +161,11 @@ class AIRPG:
         if message == "/Explore inventory":
             return self.inventory.format()
 
-        llm_func: LLMFunction[AIRPGResponse] = self._load_llm_function()
+        llm_func: LLMFunction[AIRPGResponse] = self._load_main_llm_function()
 
         messages = self._history_to_messages(history)
 
-        roll = roll_dice(
-            dice=self.config.difficulty.number_of_dice, aggregation=self.config.difficulty.dice_combine_method
-        )
+        roll = self.dice_roller.roll_dice()
 
         user_message = LLMMessage.user_message(self.user_prompt_template.format(roll=roll, action=message))
         messages.append(user_message)
@@ -189,10 +189,3 @@ class AIRPG:
 
         print("Running the UI...")
         start_game_ui(self.game_loop, greeting_message=starting_message)
-
-
-if __name__ == "__main__":
-    dotenv.load_dotenv()
-    config = AIRPGConfig.load()
-    game = AIRPG(config)
-    game.run()

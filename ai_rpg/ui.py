@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import gradio as gr  # type: ignore
 
@@ -17,12 +17,3 @@ def start_game_ui(main_loop: Callable, greeting_message: Optional[str] = None, s
         clear_btn="Clear",
     )
     demo.launch(share=share, server_name="localhost")
-
-
-def test_main_loop(message: str, history: List[List[str]]) -> str:
-    history_str = "\n".join([f"User: {h[0]}\nAssistant: {h[1]}" for h in history])
-    return f"History:\n{history_str}\n---\nEntered Action: {message}"
-
-
-if __name__ == "__main__":
-    start_game_ui(test_main_loop)

@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any, Final, List, Optional
 
 import yaml
-from council import OpenAILLM
 from council.llm import (
     LLMBase,
     LLMFileLoggingMiddleware,
@@ -14,23 +13,20 @@ from council.llm import (
     LLMMessage,
     LLMMiddlewareChain,
     StringResponseParser,
+    get_llm_from_config,
 )
 from council.llm.llm_function.llm_response_parser import LLMResponseParser
 from council.prompt import LLMPromptConfigObject
-from council.utils import OsEnviron
 
 BASE_PATH: Final[str] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 DATA_PATH: Final[str] = os.path.join(BASE_PATH, "data")
 LOGS_PATH: Final[str] = os.path.join(BASE_PATH, "logs")
 PROMPTS_PATH: Final[str] = os.path.join(BASE_PATH, "prompts")
+LLM_CONFIG_PATH: Final[str] = os.path.join(DATA_PATH, "llm-config.yaml")
 
 
 def get_llm() -> LLMBase:
-    # gpt-4o-2024-08-06
-    # gpt-4o-mini-2024-07-18
-    # TODO: move to config
-    with OsEnviron("OPENAI_LLM_MODEL", "gpt-4o-mini-2024-07-18"), OsEnviron("OPENAI_LLM_TEMPERATURE", "0.5"):
-        return OpenAILLM.from_env()
+    return get_llm_from_config(LLM_CONFIG_PATH)
 
 
 def get_llm_with_logging() -> LLMMiddlewareChain:

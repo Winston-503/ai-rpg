@@ -4,10 +4,10 @@ import random
 class DiceRoller:
     """A class for simulating dice rolls in D&D."""
 
-    def __init__(self, num_dice: int = 1, aggregation: str = "avg", sides: int = 20):
+    def __init__(self, num_dice: int = 1, aggregation: str = "avg"):
         self.num_dice = num_dice
         self.aggregation = aggregation
-        self.sides = sides
+        self.sides = 20
 
     def _roll_die(self) -> int:
         """Simulate rolling a single die."""

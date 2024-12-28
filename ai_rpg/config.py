@@ -34,6 +34,8 @@ class DifficultyConfig:
 
 @dataclass
 class AIRPGConfig:
+    """Main configuration object for the AI RPG."""
+
     generation: GenerationConfig
     difficulty: DifficultyConfig
     language: Optional[str]

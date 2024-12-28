@@ -1,0 +1,16 @@
+kind: LLMConfig
+version: 0.1
+metadata:
+  name: llm-config
+spec:
+  description: "Model used for AI RPG."
+  provider:
+    name: OpenAI
+    openAISpec:
+      model: gpt-4o-2024-08-06
+      timeout: 90
+      apiKey:
+        fromEnvVar: OPENAI_API_KEY
+  parameters:
+    n: 1
+    temperature: 0.5

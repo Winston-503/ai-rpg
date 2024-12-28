@@ -11,11 +11,15 @@ from .utils import get_llm_function, get_prompt, read_generation
 
 
 class InventoryChange(YAMLBlockResponseParser):
+    """Single change to an item in the player's inventory."""
+
     name: str = Field(..., description="Name of the item to change.")
     amount: int = Field(..., description="Change amount, e.g. +1, -5 etc.")
 
 
 class AIRPGResponse(YAMLBlockResponseParser):
+    """AI's response to a player's action."""
+
     _reasoning_description = "\n".join(
         [
             "Your reasoning about the current situation, player action and dice roll.",
@@ -35,6 +39,8 @@ class AIRPGResponse(YAMLBlockResponseParser):
 
 
 class Inventory:
+    """Manages the player's in-game inventory."""
+
     def __init__(self, items: Dict[str, int]):
         self._items = items
 
@@ -43,19 +49,23 @@ class Inventory:
         return self._items
 
     def update(self, changes: List[InventoryChange]) -> None:
+        """Update the inventory items based on the list of InventoryChange objects."""
         for inventory_change in changes:
             if inventory_change.name not in self.items:
                 self.items[inventory_change.name] = 0
             self.items[inventory_change.name] += inventory_change.amount
 
     def format(self) -> str:
+        """String representation of the inventory contents."""
+
         if not self.items:
             return "Inventory is empty."
         return "\n".join(["Inventory content:", *[f"- {item}: {amount}" for item, amount in self._items.items()]])
 
     @staticmethod
     def format_changes(changes: List[InventoryChange]) -> str:
-        """Format inventory changes as a string."""
+        """Format a sequence of inventory changes as a string."""
+
         if not changes:
             return ""
         return "\n".join(
@@ -67,16 +77,24 @@ class Inventory:
 
 
 class AIRPG:
+    """
+    The main AI RPG class which ties together world/story generation, inventory management,
+    and the interactive game loop.
+    """
+
     MAIN_PROMPT_FILENAME = "ai-game-master.yaml"
     STARTING_MESSAGE_PROMPT_FILENAME = "starting-message.yaml"
 
     def __init__(self, game_config: AIRPGConfig):
+        """Initialize the AI RPG with a given configuration."""
+
         self.config = game_config
         self.user_prompt_template = self._load_user_prompt_template()
         self.total_cost = 0.0
         self.language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
         self.dice_roller = DiceRoller(
-            dice=self.config.difficulty.number_of_dice, aggregation=self.config.difficulty.dice_combine_method
+            num_dice=self.config.difficulty.number_of_dice,
+            aggregation=self.config.difficulty.dice_combine_method,
         )
 
         self.world_description = self._load_world()
@@ -85,24 +103,29 @@ class AIRPG:
         self.inventory = Inventory(self._load_inventory())
 
     def _load_world(self) -> str:
+        """Load or generate the world description."""
         if self.config.generation.world is not None and self.config.generation.world.endswith(".md"):
             return read_generation(self.config.generation.world)
 
         return generate_world(self.config.generation.world or "")
 
     def _load_story(self) -> str:
+        """Load or generate the story based on the world description."""
         if self.config.generation.story is not None:
             return read_generation(self.config.generation.story)
 
         return generate_story(self.world_description)
 
     def _load_inventory(self) -> Dict[str, int]:
+        """Load or generate the character's starting inventory based on the story."""
         if self.config.generation.starting_inventory is not None:
             return read_generation(self.config.generation.starting_inventory)
 
         return generate_inventory(self.story)
 
     def _load_main_llm_function(self) -> LLMFunction[AIRPGResponse]:
+        """Prepare the main LLM function for the game loop interactions."""
+
         return get_llm_function(
             self.MAIN_PROMPT_FILENAME,
             AIRPGResponse.from_response,
@@ -115,6 +138,8 @@ class AIRPG:
         )
 
     def _load_starting_message_llm_function(self) -> LLMFunction[str]:
+        """Prepare an LLM function to generate the starting message for the game."""
+
         return get_llm_function(
             self.STARTING_MESSAGE_PROMPT_FILENAME,
             world_description=self.world_description,
@@ -124,12 +149,13 @@ class AIRPG:
         )
 
     def _load_user_prompt_template(self) -> str:
+        """Load the user prompt template from a YAML-based prompt config file."""
         prompt = get_prompt(self.MAIN_PROMPT_FILENAME)
         return prompt.get_user_prompt_template("default")  # pylint: disable=no-member
 
     @staticmethod
     def _history_to_messages(history: List[List[str]]) -> List[LLMMessage]:
-        """Unwrap gradio's ChatInterface history and input message to List[LLMMessage]"""
+        """Convert a Gradio-style chat history into a list of LLMMessage objects."""
         messages = []
         for action in history:
             # None checks to handle first assistant message without the user input
@@ -140,7 +166,16 @@ class AIRPG:
 
         return messages
 
+    def generate_starting_message(self) -> str:
+        """Generate the first greeting/intro message for the player."""
+        llm_func: LLMFunction[str] = self._load_starting_message_llm_function()
+        llm_response = llm_func.execute_with_llm_response()
+        self.track_cost(llm_response)
+        return llm_response.response
+
     def track_cost(self, llm_response: LLMFunctionResponse) -> None:
+        """Accumulate token cost from the LLM response into self.total_cost if this information is available."""
+
         # TODO: implement saving session in the end
         for consumption in llm_response.consumptions:
             if consumption.kind.endswith("total_tokens_cost"):
@@ -149,6 +184,8 @@ class AIRPG:
 
     @staticmethod
     def format_response(roll: int, llm_response: str, inventory_changes: List[InventoryChange]) -> str:
+        """Format the final text response for the user, including dice roll info and inventory changes."""
+
         response_parts = [f"You roll {roll}.", llm_response, ""]
 
         if inventory_changes:
@@ -157,18 +194,23 @@ class AIRPG:
         return "\n".join(response_parts)
 
     def game_loop(self, message: str, history: List[List[str]]) -> str:
-        """Main game loop that processes player actions, compatible with gradio's chatbot."""
+        """
+        The main game loop function.
+        Processes the user's action, obtains the AI's response, and updates the inventory accordingly.
+
+        Compatible with Gradio's ChatInterface signature.
+        """
+
         if message == "/Explore inventory":
             return self.inventory.format()
 
         llm_func: LLMFunction[AIRPGResponse] = self._load_main_llm_function()
-
         messages = self._history_to_messages(history)
 
         roll = self.dice_roller.roll_dice()
-
         user_message = LLMMessage.user_message(self.user_prompt_template.format(roll=roll, action=message))
         messages.append(user_message)
+
         llm_response = llm_func.execute_with_llm_response(messages=messages)
         response = llm_response.response
 
@@ -177,13 +219,12 @@ class AIRPG:
 
         return self.format_response(roll, response.message, response.inventory_changes)
 
-    def generate_starting_message(self) -> str:
-        llm_func: LLMFunction[str] = self._load_starting_message_llm_function()
-        llm_response = llm_func.execute_with_llm_response()
-        self.track_cost(llm_response)
-        return llm_response.response
-
     def run(self):
+        """
+        Entry point for running the entire game in a Gradio UI loop.
+        Generates the starting message and then calls the Gradio UI function to begin interactive play.
+        """
+
         print("Generating the starting message...")
         starting_message = self.generate_starting_message()
 

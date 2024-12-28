@@ -40,13 +40,16 @@ class AIRPGResponse(YAMLBlockResponseParser):
 
 
 class AIRPG:
-    PROMPT_FILENAME = "ai-game-master.yaml"
+    MAIN_PROMPT_FILENAME = "ai-game-master.yaml"
+    STARTING_MESSAGE_PROMPT_FILENAME = "starting-message.yaml"
 
     def __init__(self, game_config: AIRPGConfig):
         self.config = game_config
         self.user_prompt_template = self._load_user_prompt_template()
         self.total_cost = 0.0
+        self.language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
 
+        self.world_description = self._load_world()
         self.world_description = self._load_world()
         self.story = self._load_story()
         self.inventory = self._load_inventory()
@@ -69,21 +72,29 @@ class AIRPG:
 
         return generate_inventory(self.story)
 
-    def _load_llm_function(self) -> LLMFunction:
-        language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
+    def _load_llm_function(self) -> LLMFunction[AIRPGResponse]:
         return get_llm_function(
-            self.PROMPT_FILENAME,
+            self.MAIN_PROMPT_FILENAME,
             AIRPGResponse.from_response,
             dice_legend=self.config.difficulty.dice_legend,
             world_description=self.world_description,
             story=self.story,
             inventory=yaml.dump(self.inventory),
-            language_instructions=language_instructions,
+            language_instructions=self.language_instructions,
             response_template=AIRPGResponse.to_response_template(),
         )
 
+    def _load_starting_message_llm_function(self) -> LLMFunction[str]:
+        return get_llm_function(
+            self.STARTING_MESSAGE_PROMPT_FILENAME,
+            world_description=self.world_description,
+            story=self.story,
+            inventory=yaml.dump(self.inventory),
+            language_instructions=self.language_instructions,
+        )
+
     def _load_user_prompt_template(self) -> str:
-        prompt = get_prompt(self.PROMPT_FILENAME)
+        prompt = get_prompt(self.MAIN_PROMPT_FILENAME)
         return prompt.get_user_prompt_template("default")  # pylint: disable=no-member
 
     @staticmethod
@@ -98,6 +109,7 @@ class AIRPG:
         return messages
 
     def track_cost(self, llm_response: LLMFunctionResponse) -> None:
+        # TODO: implement saving session in the end
         for consumption in llm_response.consumptions:
             if consumption.kind.endswith("total_tokens_cost"):
                 self.total_cost += consumption.value
@@ -146,12 +158,18 @@ class AIRPG:
 
         return self.format_response(roll, response.message, response.inventory_changes)
 
+    def generate_starting_message(self) -> str:
+        llm_func: LLMFunction[str] = self._load_starting_message_llm_function()
+        llm_response = llm_func.execute_with_llm_response()
+        self.track_cost(llm_response)
+        return llm_response.response
+
     def run(self):
-        # TODO: separate LLMFunction
-        start_message = "The story begins..."
+        print("Generating the starting message...")
+        starting_message = self.generate_starting_message()
 
         print("Running the UI...")
-        start_game_ui(self.game_loop, greeting_message=start_message)
+        start_game_ui(self.game_loop, greeting_message=starting_message)
 
 
 if __name__ == "__main__":

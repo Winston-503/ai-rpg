@@ -72,8 +72,38 @@ Run the game:
 python main.py
 ```
 
+### Commands
+
+During gameplay, you can use special commands prefixed with `/`:
+
+- `/inventory`: Check your current inventory
+- `/save`: Save the current game state and show the total cost
+
+Any other input will be treated as an action for your character to perform in the game world.
+
+### Manual Generation
+
 For a more manual approach, you can run any of `tests/test_x_generation.py` to test the generation of a specific type of content for your input. 
 This will produce a file in the `data/generation` directory that you can review and refine as needed and then use in the main configuration.
+
+Example workflow:
+1. Generate a custom world:
+   ```bash
+   python tests/test_world_generation.py
+   ```
+2. Review and edit the generated file in `data/generation/world_*.md`
+3. Pass the filename to the `tests/test_story_generation.py` script to generate a story for your world and then pass the story filename to the `tests/test_starting_inventory_generation.py` script to generate a starting inventory for your character.
+4. Update `ai-rpg-config.yaml` to use your custom world:
+   ```yaml
+   generation:
+     world: world_2025-01-01_revised.md
+     story: story_2025-01-01_revised.md
+     starting_inventory: starting_inventory_2025-01-01_revised.yaml
+   ```
+5. Run the game with your custom content:
+   ```bash
+   python main.py
+   ```
 
 ## Development
 

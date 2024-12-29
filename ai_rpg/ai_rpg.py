@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List
 
 from council.llm import LLMFunction, LLMFunctionResponse, LLMMessage, YAMLBlockResponseParser
@@ -7,7 +8,7 @@ from .config import AIRPGConfig
 from .dice import DiceRoller
 from .generators import generate_inventory, generate_story, generate_world
 from .ui import start_game_ui
-from .utils import get_llm_function, get_prompt, read_generation
+from .utils import get_llm_function, get_prompt, read_generation, save_generation
 
 
 class InventoryChange(YAMLBlockResponseParser):
@@ -42,7 +43,7 @@ class Inventory:
     """Manages the player's in-game inventory."""
 
     def __init__(self, items: Dict[str, int]):
-        self._items = items
+        self._items = items.copy()
 
     @property
     def items(self) -> Dict[str, int]:
@@ -100,7 +101,8 @@ class AIRPG:
         self.world_description = self._load_world()
         self.world_description = self._load_world()
         self.story = self._load_story()
-        self.inventory = Inventory(self._load_inventory())
+        self.starting_inventory = self._load_inventory()
+        self.inventory = Inventory(self.starting_inventory)
 
     def _load_world(self) -> str:
         """Load or generate the world description."""
@@ -176,11 +178,29 @@ class AIRPG:
     def track_cost(self, llm_response: LLMFunctionResponse) -> None:
         """Accumulate token cost from the LLM response into self.total_cost if this information is available."""
 
-        # TODO: implement saving session in the end
         for consumption in llm_response.consumptions:
             if consumption.kind.endswith("total_tokens_cost"):
                 self.total_cost += consumption.value
                 return
+
+    def save_game_state(self, history: List[List[str]]) -> str:
+        """Save the current game state into a YAML file."""
+
+        game_state = {
+            "timestamp": datetime.now().isoformat(),
+            "total_cost": self.total_cost,
+            "world_description": self.world_description,
+            "story": self.story,
+            "starting_inventory": self.starting_inventory,
+            "history": [
+                {"role": message.role.value, "content": message.content}
+                for message in self._history_to_messages(history)
+            ],
+        }
+
+        filename = save_generation(content=game_state, prefix="game_state_")
+
+        return f"Game state saved to {filename}!\nTotal cost: ${self.total_cost:.4f}"
 
     @staticmethod
     def format_response(roll: int, llm_response: str, inventory_changes: List[InventoryChange]) -> str:
@@ -201,8 +221,10 @@ class AIRPG:
         Compatible with Gradio's ChatInterface signature.
         """
 
-        if message == "/Explore inventory":
+        if message == "/inventory":
             return self.inventory.format()
+        elif message == "/save":
+            return self.save_game_state(history)
 
         llm_func: LLMFunction[AIRPGResponse] = self._load_main_llm_function()
         messages = self._history_to_messages(history)

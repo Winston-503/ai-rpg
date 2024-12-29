@@ -59,17 +59,33 @@ def get_llm_function(
     )
 
 
+def format_duration_and_cost(llm_response: LLMFunctionResponse) -> str:
+    message = f"in {llm_response.duration:.2f} seconds"
+    for consumption in llm_response.consumptions:
+        if consumption.kind.endswith("total_tokens_cost"):
+            message += f" for ${consumption.value:.8f}"
+            break
+
+    return message
+
+
 def save_str(*, content: str, path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
 
 
 def save_yaml(*, content: Any, path: str) -> None:
+    class CustomDumper(yaml.Dumper):
+        def represent_scalar(self, tag, value, style=None):
+            if isinstance(value, str) and "\n" in value:
+                style = "|"
+            return super().represent_scalar(tag, value, style)
+
     with open(path, "w", encoding="utf-8") as f:
-        yaml.dump(content, f)
+        yaml.dump(content, f, sort_keys=False, default_flow_style=False, allow_unicode=True, Dumper=CustomDumper)
 
 
-def save_generation(*, content: Any, prefix: str) -> None:
+def save_generation(*, content: Any, prefix: str) -> str:
     """Save a generation to a file, either as a markdown or a yaml."""
 
     filename_without_extension = f"{prefix}{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -81,6 +97,7 @@ def save_generation(*, content: Any, prefix: str) -> None:
         save_yaml(content=content, path=os.path.join(GENERATION_PATH, filename))
 
     print(f"\nSaved into {filename}")
+    return filename
 
 
 def read_generation(filename: str) -> Any:
@@ -90,13 +107,3 @@ def read_generation(filename: str) -> Any:
         if filename.endswith(".yaml"):
             return yaml.safe_load(f)
         return f.read()
-
-
-def format_duration_and_cost(llm_response: LLMFunctionResponse) -> str:
-    message = f"in {llm_response.duration:.2f} seconds"
-    for consumption in llm_response.consumptions:
-        if consumption.kind.endswith("total_tokens_cost"):
-            message += f" for ${consumption.value:.8f}"
-            break
-
-    return message

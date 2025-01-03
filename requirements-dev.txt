@@ -1,11 +1,8 @@
-# requirements for developers and CI
 -r requirements.txt
 
-# Lint
 black==24.4.2
 mypy==1.11.0
 ruff==0.5.5
 pylint==3.2.6
 
-# Types
 types-PyYAML==6.0.12.20241221

@@ -6,18 +6,18 @@ generation:
 
   # Story setting for the game. One of:
   # - null: generate a story based on the world generated in the previous step
-  # - filename.md: use a specific story file
+  # - filename.md: use an existing story file
   story: story_example.md
 
   # Starting inventory for the character. One of:
   # - null: generate an inventory based on the story generated in the previous step
-  # - filename.yaml: use a specific inventory file
+  # - filename.yaml: use an existing inventory file
   starting_inventory: inventory_example.yaml
 
 difficulty:
   number_of_dice: 1  # How many dice to roll each time
   dice_combine_method: "avg"  # How to combine multiple dice rolls: "avg" (average), "min" (minimum) or "max" (maximum)
-  dice_legend: |
+  dice_legend: |  # Interpretation of the dice roll results
     - 1: Immediate death. The character dies immediately.
     - 2-5: Critical failure. The worst possible outcome occurs, potentially putting the character in grave danger.
     - 6-10: Failure. The action fails but without severe consequences.
@@ -25,5 +25,5 @@ difficulty:
     - 16-19: Success. The action succeeds as intended.
     - 20: Critical success. The action succeeds spectacularly with additional positive effects.
 
-# Language for the LLM to respond in, null for English
+# Language to encourage LLM to respond in, null for English
 language: null

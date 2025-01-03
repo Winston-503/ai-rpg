@@ -1,4 +1,24 @@
 import random
+from typing import List
+
+
+class DiceAggregator:
+    """Handles aggregation of multiple dice rolls."""
+
+    SUPPORTED_METHODS = {"avg", "min", "max"}
+
+    def __init__(self, method: str):
+        if method not in self.SUPPORTED_METHODS:
+            raise ValueError(f"Invalid aggregation method: '{method}'. Must be one of {self.SUPPORTED_METHODS}")
+        self.method = method
+
+    def aggregate(self, rolls: List[int]) -> int:
+        if self.method == "min":
+            return min(rolls)
+        elif self.method == "max":
+            return max(rolls)
+
+        return round(sum(rolls) / len(rolls))
 
 
 class DiceRoller:
@@ -6,7 +26,7 @@ class DiceRoller:
 
     def __init__(self, num_dice: int = 1, aggregation: str = "avg"):
         self.num_dice = num_dice
-        self.aggregation = aggregation
+        self.aggregator = DiceAggregator(aggregation)
         self.sides = 20
 
     def _roll_die(self) -> int:
@@ -20,13 +40,5 @@ class DiceRoller:
         For example, if num_dice=2, it will roll 2d20 and then
         either take the average, the minimum, or the maximum depending on self.aggregation.
         """
-
         rolls = [self._roll_die() for _ in range(self.num_dice)]
-        if self.aggregation == "avg":
-            return round(sum(rolls) / self.num_dice)
-        elif self.aggregation == "min":
-            return min(rolls)
-        elif self.aggregation == "max":
-            return max(rolls)
-        else:
-            raise ValueError(f"Invalid aggregation method: {self.aggregation}")
+        return self.aggregator.aggregate(rolls)

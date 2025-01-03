@@ -3,7 +3,7 @@ version: 0.1
 metadata:
   name: llm-config
 spec:
-  description: "Model used for AI RPG."
+  description: "Model used for all AI RPG components."
   provider:
     name: OpenAI
     openAISpec:

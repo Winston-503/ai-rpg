@@ -47,8 +47,9 @@ class AIRPGConfig:
 
         generation = GenerationConfig.from_yaml(data["generation"])
         difficulty = DifficultyConfig.from_yaml(data["difficulty"])
+        language = data.get("language", None)
 
-        return cls(generation=generation, difficulty=difficulty, language=data["language"])
+        return cls(generation=generation, difficulty=difficulty, language=language)
 
     @classmethod
     def load(cls) -> "AIRPGConfig":

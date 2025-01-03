@@ -14,7 +14,13 @@ from .utils import get_llm_function, get_prompt, read_generation, save_generatio
 class InventoryChange(YAMLBlockResponseParser):
     """Single change to an item in the player's inventory."""
 
-    name: str = Field(..., description="Name of the item to change.")
+    _name_description = "\n".join(
+        [
+            "Name of the item to change.",
+            "Make sure it's a valid item name, especially if you're responding in a language other than English.",
+        ]
+    )
+    name: str = Field(..., description=_name_description)
     amount: int = Field(..., description="Change amount, e.g. +1, -5 etc.")
 
 
@@ -129,8 +135,8 @@ class AIRPG:
         """Prepare the main LLM function for the game loop interactions."""
 
         return get_llm_function(
-            self.MAIN_PROMPT_FILENAME,
-            AIRPGResponse.from_response,
+            prompt_filename=self.MAIN_PROMPT_FILENAME,
+            response_parser=AIRPGResponse.from_response,
             dice_legend=self.config.difficulty.dice_legend,
             world_description=self.world_description,
             story=self.story,
@@ -143,7 +149,7 @@ class AIRPG:
         """Prepare an LLM function to generate the starting message for the game."""
 
         return get_llm_function(
-            self.STARTING_MESSAGE_PROMPT_FILENAME,
+            prompt_filename=self.STARTING_MESSAGE_PROMPT_FILENAME,
             world_description=self.world_description,
             story=self.story,
             inventory=self.inventory.format(),

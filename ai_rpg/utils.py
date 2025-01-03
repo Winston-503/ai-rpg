@@ -16,14 +16,21 @@ from council.llm import (
 from council.llm.llm_function.llm_response_parser import LLMResponseParser
 from council.prompt import LLMPromptConfigObject
 
+# Base paths
 BASE_PATH: Final[str] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 DATA_PATH: Final[str] = os.path.join(BASE_PATH, "data")
-GENERATION_PATH: Final[str] = os.path.join(DATA_PATH, "generation")
-LOGS_PATH: Final[str] = os.path.join(BASE_PATH, "logs")
-PROMPTS_PATH: Final[str] = os.path.join(DATA_PATH, "prompts")
+
+# Data subdirectories
 CONFIG_PATH: Final[str] = os.path.join(DATA_PATH, "config")
-AI_RPG_CONFIG_PATH: Final[str] = os.path.join(CONFIG_PATH, "ai-rpg-config.yaml")
+PROMPTS_PATH: Final[str] = os.path.join(DATA_PATH, "prompts")
+GENERATION_PATH: Final[str] = os.path.join(DATA_PATH, "generation")
+
+# Log directory
+LOGS_PATH: Final[str] = os.path.join(BASE_PATH, "logs")
+
+# Config files
 LLM_CONFIG_PATH: Final[str] = os.path.join(CONFIG_PATH, "llm-config.yaml")
+AI_RPG_CONFIG_PATH: Final[str] = os.path.join(CONFIG_PATH, "ai-rpg-config.yaml")
 
 
 def get_llm() -> LLMBase:

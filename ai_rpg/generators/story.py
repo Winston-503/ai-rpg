@@ -3,6 +3,7 @@ from ..utils import format_duration_and_cost, get_llm_function, save_generation
 
 def generate_story(world_description: str) -> str:
     """Generate a story based on a world description."""
+
     llm_func = get_llm_function("story-generation.yaml")
     print("Generating main character and story...")
 

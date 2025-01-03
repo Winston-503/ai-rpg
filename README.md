@@ -14,7 +14,7 @@ An AI-powered text adventure game that uses LLM to create dynamic, interactive s
 ## Prerequisites
 
 - Python 3.12 or higher
-- OpenAI API key
+- OpenAI API key by default (could use other LLM providers)
 
 ## Installation
 
@@ -61,8 +61,7 @@ The game can be configured through YAML files in the `data/config` directory:
     - Difficulty settings
     - Response language
 
-- `llm-config.yaml`: LLM model settings including model selection and temperature. Support all
-  models [supported by Council](https://council.dev/en/stable/reference/llm/llm_config_object.html#council.llm.LLMConfigObject).
+- `llm-config.yaml`: LLM model settings including model selection and temperature. Support all models [supported by Council](https://council.dev/en/stable/reference/llm/llm_config_object.html#council.llm.LLMConfigObject).
 
 ## Usage
 
@@ -104,6 +103,12 @@ Example workflow:
    ```bash
    python main.py
    ```
+
+## Next Steps
+
+- Add attributes such as health and max number of actions similar to inventory management system
+   - Could be also generated dynamically, e.g. mana for wizards, stamina for warriors, etc.
+- Add image generation (ideally "native" with gemini-2.0) & video generation potentially
 
 ## Development
 

@@ -105,7 +105,6 @@ class AIRPG:
         )
 
         self.world_description = self._load_world()
-        self.world_description = self._load_world()
         self.story = self._load_story()
         self.starting_inventory = self._load_inventory()
         self.inventory = Inventory(self.starting_inventory)

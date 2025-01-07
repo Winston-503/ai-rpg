@@ -5,11 +5,11 @@ from typing import Any, Final, Optional
 import yaml
 from council.llm import (
     LLMBase,
-    LLMFileLoggingMiddleware,
     LLMFunction,
     LLMFunctionResponse,
     LLMLoggingStrategy,
     LLMMiddlewareChain,
+    LLMTimestampFileLoggingMiddleware,
     StringResponseParser,
     get_llm_from_config,
 )
@@ -37,16 +37,11 @@ def get_llm() -> LLMBase:
     return get_llm_from_config(LLM_CONFIG_PATH)
 
 
-def get_llm_with_logging() -> LLMMiddlewareChain:
-    return LLMMiddlewareChain(
-        llm=get_llm(),
-        middlewares=[
-            LLMFileLoggingMiddleware(
-                log_file=os.path.join(LOGS_PATH, f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"),
-                strategy=LLMLoggingStrategy.VerboseWithConsumptions,
-            )
-        ],
+def get_llm_with_logging(component_name: str) -> LLMMiddlewareChain:
+    logging_middleware = LLMTimestampFileLoggingMiddleware(
+        path=LOGS_PATH, strategy=LLMLoggingStrategy.VerboseWithConsumptions, component_name=component_name
     )
+    return LLMMiddlewareChain(llm=get_llm(), middlewares=[logging_middleware])
 
 
 def get_prompt(filename: str) -> LLMPromptConfigObject:
@@ -60,7 +55,7 @@ def get_llm_function(
     system_prompt_template = prompt.get_system_prompt_template("default")  # pylint: disable=no-member
     parser = response_parser or StringResponseParser.from_response
     return LLMFunction(
-        llm=get_llm_with_logging(),
+        llm=get_llm_with_logging(prompt_filename[:-5]),  # remove .yaml
         response_parser=parser,
         system_message=system_prompt_template.format(**kwargs),
     )

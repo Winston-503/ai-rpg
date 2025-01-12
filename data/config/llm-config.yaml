@@ -13,4 +13,4 @@ spec:
         fromEnvVar: OPENAI_API_KEY
   parameters:
     n: 1
-    temperature: 0.5
+    temperature: 1.0

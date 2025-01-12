@@ -16,6 +16,9 @@ spec:
         Adjust the environment depending on the result of the roll:
         {dice_legend}
 
+        - You must respond with 6-12 sentences.
+        - Always write in a second person narrative, e.g. "You look north and see...".
+        - If the world description or story contains plot twists, do not reveal them until the appropriate moment.
         {language_instructions}
 
         # World
@@ -29,6 +32,8 @@ spec:
         # Current Inventory
         
         {inventory}
+
+        Do not let player use items that are not in their inventory!
         
         # Response Template
         {response_template}

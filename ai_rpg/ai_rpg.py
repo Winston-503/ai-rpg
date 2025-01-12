@@ -105,10 +105,12 @@ class AIRPG:
         )
 
         self.world_description = self._load_world()
-        self.world_description = self._load_world()
         self.story = self._load_story()
         self.starting_inventory = self._load_inventory()
         self.inventory = Inventory(self.starting_inventory)
+
+        self.game_loop_llm_func = self._load_main_llm_function()
+        self.starting_message_llm_func = self._load_starting_message_llm_function()
 
     def _load_world(self) -> str:
         """Load or generate the world description."""
@@ -176,8 +178,7 @@ class AIRPG:
 
     def generate_starting_message(self) -> str:
         """Generate the first greeting/intro message for the player."""
-        llm_func: LLMFunction[str] = self._load_starting_message_llm_function()
-        llm_response = llm_func.execute_with_llm_response()
+        llm_response = self.starting_message_llm_func.execute_with_llm_response()
         self.track_cost(llm_response)
         return llm_response.response
 
@@ -232,14 +233,13 @@ class AIRPG:
         elif message == "/save":
             return self.save_game_state(history)
 
-        llm_func: LLMFunction[AIRPGResponse] = self._load_main_llm_function()
         messages = self._history_to_messages(history)
 
         roll = self.dice_roller.roll_dice()
         user_message = LLMMessage.user_message(self.user_prompt_template.format(roll=roll, action=message))
         messages.append(user_message)
 
-        llm_response = llm_func.execute_with_llm_response(messages=messages)
+        llm_response = self.game_loop_llm_func.execute_with_llm_response(messages=messages)
         response = llm_response.response
 
         self.inventory.update(response.inventory_changes)

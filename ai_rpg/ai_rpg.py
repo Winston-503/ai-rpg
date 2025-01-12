@@ -98,7 +98,7 @@ class AIRPG:
         self.config = game_config
         self.user_prompt_template = self._load_user_prompt_template()
         self.total_cost = 0.0
-        self.language_instructions = f"Respond in {self.config.language}" if self.config.language is not None else ""
+        self.language_instructions = f"- Respond in {self.config.language}" if self.config.language is not None else ""
         self.dice_roller = DiceRoller(
             num_dice=self.config.difficulty.number_of_dice,
             aggregation=self.config.difficulty.dice_combine_method,

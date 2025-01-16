@@ -52,7 +52,7 @@ def get_llm_function(
     prompt_filename: str, response_parser: Optional[LLMResponseParser] = None, **kwargs
 ) -> LLMFunction:
     prompt = get_prompt(prompt_filename)
-    system_prompt_template = prompt.get_system_prompt_template("default")  # pylint: disable=no-member
+    system_prompt_template = prompt.get_system_prompt_template()
     parser = response_parser or StringResponseParser.from_response
     return LLMFunction(
         llm=get_llm_with_logging(prompt_filename[:-5]),  # remove .yaml

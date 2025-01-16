@@ -1,4 +1,4 @@
 python-dotenv~=1.0.1
 
 gradio==4.44.1
-git+https://github.com/chain-ml/council.git@feature-improve-response-parsers
+council-ai==0.0.29

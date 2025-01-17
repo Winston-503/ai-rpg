@@ -21,7 +21,7 @@ An AI-powered text adventure game that uses LLM to create dynamic, interactive s
 1. Clone the repository:
 
 ```bash
-https://github.com/Winston-503/ai-rpg.git
+git clone https://github.com/Winston-503/ai-rpg.git
 cd ai-rpg
 ```
 

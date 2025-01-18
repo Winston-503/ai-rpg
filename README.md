@@ -13,7 +13,7 @@ An AI-powered text adventure game that uses LLM to create dynamic, interactive s
 
 ## Prerequisites
 
-- Python 3.12 or higher
+- Python 3.12 or higher is recommended (works for 3.9+)
 - OpenAI API key by default (could use other LLM providers)
 
 ## Installation
@@ -29,7 +29,11 @@ cd ai-rpg
 
 ```bash
 python -m venv venv
-source venv/bin/activate
+```
+
+```bash
+source venv/bin/activate  # linux
+venv\Scripts\activate  # windows
 ```
 
 3. Install dependencies:

@@ -1,5 +1,5 @@
 python-dotenv~=1.0.1
 
-gradio==4.44.1
+gradio>=5.11.0
 council-ai==0.0.29
 grpcio==1.69.0

@@ -9,4 +9,4 @@ def test_main_loop(message: str, history: List[List[str]]) -> str:
 
 
 if __name__ == "__main__":
-    start_game_ui(test_main_loop)
+    start_game_ui(test_main_loop, greeting_message="Test greeting message")

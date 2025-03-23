@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 
-from council.llm import LLMFunction, LLMFunctionResponse, LLMMessage, YAMLBlockResponseParser
+from council.llm import LLMFunction, LLMFunctionResponse, LLMMessage, LLMMessageRole, YAMLBlockResponseParser
 from pydantic import Field
 
 from .config import AIRPGConfig
@@ -164,17 +164,9 @@ class AIRPG:
         return prompt.get_user_prompt_template("default")  # pylint: disable=no-member
 
     @staticmethod
-    def _history_to_messages(history: List[List[str]]) -> List[LLMMessage]:
+    def _history_to_messages(history: List[Dict[str, Any]]) -> List[LLMMessage]:
         """Convert a Gradio-style chat history into a list of LLMMessage objects."""
-        messages = []
-        for action in history:
-            # None checks to handle first assistant message without the user input
-            if action[0] is not None:
-                messages.append(LLMMessage.user_message(action[0]))
-            if action[1] is not None:
-                messages.append(LLMMessage.assistant_message(action[1]))
-
-        return messages
+        return [LLMMessage(role=LLMMessageRole(m["role"]), content=m["content"]) for m in history]
 
     def generate_starting_message(self) -> str:
         """Generate the first greeting/intro message for the player."""
@@ -190,7 +182,7 @@ class AIRPG:
                 self.total_cost += consumption.value
                 return
 
-    def save_game_state(self, history: List[List[str]]) -> str:
+    def save_game_state(self, history: List[Dict[str, Any]]) -> str:
         """Save the current game state into a YAML file."""
 
         game_state = {
@@ -199,10 +191,7 @@ class AIRPG:
             "world_description": self.world_description,
             "story": self.story,
             "starting_inventory": self.starting_inventory,
-            "history": [
-                {"role": message.role.value, "content": message.content}
-                for message in self._history_to_messages(history)
-            ],
+            "history": [{"role": message["role"], "content": message["content"]} for message in history],
         }
 
         filename = save_generation(content=game_state, prefix="game_state_")
@@ -220,7 +209,7 @@ class AIRPG:
 
         return "\n".join(response_parts)
 
-    def game_loop(self, message: str, history: List[List[str]]) -> str:
+    def game_loop(self, message: str, history: List[Dict[str, Any]]) -> str:
         """
         The main game loop function.
         Processes the user's action, obtains the AI's response, and updates the inventory accordingly.
